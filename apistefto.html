@@ -1,0 +1,192 @@
+<html>
+<canvas id="gameCanvas" width="800" height="600"></canvas>
+
+<script>
+var mySound;
+var myMusic;
+
+
+var canvas;
+var canvasContext;
+var ballX = 50;
+var ballY = 50;
+var ballSpeedX = 10;
+var ballSpeedY=4;
+
+//ta score kathe paikti + to winning score
+var player1Score=0;
+var player2Score=0;
+const WINNING_SCORE=5;
+
+//ta pad kathe paikti
+var paddle1Y=250;
+var paddle2Y=250;
+const PADDLE_HEIGHT=100;
+
+//pairnoyme tis times tou pontikiou 
+function calculateMousePos(evt)
+{
+	var rect=canvas.getBoundingClientRect();
+	var root=document.documentElement;
+	var mouseX=evt.clientX - rect.left - root.scrollLeft;
+	var mouseY=evt.clientY - rect.top - root.scrollTop;
+	return{
+		x:mouseX,
+		y:mouseY
+	};
+}
+
+window.onload = function() 
+{
+	canvas = document.getElementById('gameCanvas');
+	canvasContext = canvas.getContext('2d');
+
+	var framesPerSecond = 80;
+	setInterval(function() 	{
+			moveEverything();
+			drawEverything();	
+		}, 1000/framesPerSecond);
+//dimiourgia event gia tin kinisi tou paikti
+canvas.addEventListener('mousemove',
+	function(evt) {
+	var MousePos=calculateMousePos(evt);
+	paddle1Y=MousePos.y-(PADDLE_HEIGHT/2);
+
+});
+
+}
+
+//se periptosi poy mpei goal
+function ballReset()
+{	//sinthiki telos paixnidiou
+	if(player1Score>=WINNING_SCORE || player2Score>=WINNING_SCORE)
+	{	//minima nikiti/xamenoy
+		if(player1Score>player2Score)
+		{
+			//dimiourgia antikeimenou gia ton ixo 
+			var audio_player = new Audio('player_win.mp3');
+			audio_player.play();
+			alert("Human won :D ");
+		}
+		else
+		{
+			alert("PC's are better than humans? 0.0 ");
+			var audio_gameover = new Audio('gameover.mp3');
+				audio_gameover.play();
+		}
+		//midenizo ta score
+		player1Score=player2Score=0;
+	}	
+
+//allazei tin fora tis mpalas + tin topothetei sto kentro
+	ballSpeedX = -ballSpeedX;
+	ballX=canvas.width/2;
+	ballY=canvas.height/2;
+}
+
+//kinisi tou player2 apo ton ipologisti
+function computerMovement()
+{
+	var paddle2YCenter=paddle2Y + (PADDLE_HEIGHT/2);
+	if(paddle2YCenter<ballY-25)
+	{
+		paddle2Y+=6;
+	}
+	else if(paddle2YCenter>ballY+25)
+	{
+		paddle2Y-=6;
+	}
+}
+
+
+function moveEverything() 
+{
+	//ballSpeedX = -ballSpeedX;
+	ballX = ballX + ballSpeedX;
+	ballY = ballY + ballSpeedY;
+	computerMovement();
+	if(ballX < 0) {
+		//ballSpeedX = -ballSpeedX;
+		if(ballY > paddle1Y && ballY < paddle1Y+PADDLE_HEIGHT) 
+		{			
+			ballSpeedX = -ballSpeedX;		
+			var deltaY=ballY - (paddle1Y+PADDLE_HEIGHT/2);
+			ballSpeedY=deltaY * 0.35;
+		
+				var audio_bounce= new Audio('bounce.mp3');
+				audio_bounce.play();
+
+		}
+		else
+		{
+				player2Score++;
+				ballReset();
+				var audio= new Audio('Beep.mp3');
+				audio.play();
+		}
+	}
+	if(ballX > canvas.width) 
+	{
+		if(ballY > paddle2Y && ballY < paddle2Y+PADDLE_HEIGHT) 
+		{
+			ballSpeedX = -ballSpeedX;		
+			var deltaY=ballY - (paddle2Y+PADDLE_HEIGHT/2);
+			ballSpeedY=deltaY * 0.35;
+
+			var audio_bounce= new Audio('bounce.mp3');
+				audio_bounce.play();
+
+		}
+		else
+		{	
+			player1Score++;	
+			ballReset();
+			var audio = new Audio('Beep.mp3');
+			audio.play();
+		}
+	}
+
+	if(ballY < 0) 
+		{		ballSpeedY = -ballSpeedY;}
+	if(ballY > canvas.height) 
+		{		ballSpeedY = -ballSpeedY;}
+}
+
+
+
+function drawEverything() {
+	
+	//dimiourgia maurou background
+	colorRect(0,0,canvas.width,canvas.height,'black');
+
+	// auto einai toy player to xeiristirio
+	colorRect(0,paddle1Y,10,100,'white');
+
+	// kodikas gia tin dimiourgia tis mpalas
+	colorCircle(ballX,ballY,5,'white');	
+
+	// auto einai tou pc to xeiristirio
+	colorRect(canvas.width-10,paddle2Y,10,PADDLE_HEIGHT,'white');
+
+	//gia tin endeiksi ton scores
+	canvasContext.fillText(player1Score, 100, 100);
+	canvasContext.fillText(player2Score, canvas.width-100, 100);
+
+}
+
+function colorRect(leftX,topY, width,height, drawColor) 
+{
+	canvasContext.fillStyle = drawColor;
+	canvasContext.fillRect(leftX,topY, width,height);
+}
+
+function colorCircle(centerX,centerY,radius,drawColor)
+{
+	canvasContext.fillStyle = drawColor;
+	canvasContext.beginPath(); 
+	canvasContext.arc(centerX,centerY,radius,0,Math.PI*2,true);
+	canvasContext.fill();
+}
+
+</script>
+</html>
